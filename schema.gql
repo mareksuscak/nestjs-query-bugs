@@ -1,0 +1,253 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Broker {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+}
+
+type DeleteManyResponse {
+  """The number of records deleted."""
+  deletedCount: Int!
+}
+
+type BrokerDeleteResponse {
+  id: ID
+  email: String
+  firstName: String
+  lastName: String
+}
+
+type UpdateManyResponse {
+  """The number of records updated."""
+  updatedCount: Int!
+}
+
+type OffsetPageInfo {
+  """true if paging forward and there are more records."""
+  hasNextPage: Boolean
+
+  """true if paging backwards and there are more records."""
+  hasPreviousPage: Boolean
+}
+
+type BrokerConnection {
+  """Paging information"""
+  pageInfo: OffsetPageInfo!
+
+  """Array of nodes."""
+  nodes: [Broker!]!
+
+  """Fetch total count of records"""
+  totalCount: Int!
+}
+
+type BrokerAggregateGroupBy {
+  id: ID
+  firstName: String
+  lastName: String
+}
+
+type BrokerCountAggregate {
+  id: Int
+  firstName: Int
+  lastName: Int
+}
+
+type BrokerMinAggregate {
+  id: ID
+  firstName: String
+  lastName: String
+}
+
+type BrokerMaxAggregate {
+  id: ID
+  firstName: String
+  lastName: String
+}
+
+type BrokerAggregateResponse {
+  groupBy: BrokerAggregateGroupBy
+  count: BrokerCountAggregate
+  min: BrokerMinAggregate
+  max: BrokerMaxAggregate
+}
+
+type Query {
+  brokerAggregate(
+    """Filter to find records to aggregate on"""
+    filter: BrokerAggregateFilter
+  ): [BrokerAggregateResponse!]!
+  broker(
+    """The id of the record to find."""
+    id: ID!
+  ): Broker!
+  brokers(
+    """Limit or page results."""
+    paging: OffsetPaging! = {limit: 10}
+
+    """Specify to filter the records returned."""
+    filter: BrokerFilter! = {}
+
+    """Specify to sort results."""
+    sorting: [BrokerSort!]! = []
+  ): BrokerConnection!
+}
+
+input BrokerAggregateFilter {
+  and: [BrokerAggregateFilter!]
+  or: [BrokerAggregateFilter!]
+  id: IDFilterComparison
+  firstName: StringFieldComparison
+  lastName: StringFieldComparison
+}
+
+input IDFilterComparison {
+  is: Boolean
+  isNot: Boolean
+  eq: ID
+  neq: ID
+  gt: ID
+  gte: ID
+  lt: ID
+  lte: ID
+  like: ID
+  notLike: ID
+  iLike: ID
+  notILike: ID
+  in: [ID!]
+  notIn: [ID!]
+}
+
+input StringFieldComparison {
+  is: Boolean
+  isNot: Boolean
+  eq: String
+  neq: String
+  gt: String
+  gte: String
+  lt: String
+  lte: String
+  like: String
+  notLike: String
+  iLike: String
+  notILike: String
+  in: [String!]
+  notIn: [String!]
+}
+
+input OffsetPaging {
+  """Limit the number of records returned"""
+  limit: Int
+
+  """Offset to start returning records from"""
+  offset: Int
+}
+
+input BrokerFilter {
+  and: [BrokerFilter!]
+  or: [BrokerFilter!]
+  id: IDFilterComparison
+  firstName: StringFieldComparison
+  lastName: StringFieldComparison
+}
+
+input BrokerSort {
+  field: BrokerSortFields!
+  direction: SortDirection!
+  nulls: SortNulls
+}
+
+enum BrokerSortFields {
+  id
+  firstName
+  lastName
+}
+
+"""Sort Directions"""
+enum SortDirection {
+  ASC
+  DESC
+}
+
+"""Sort Nulls Options"""
+enum SortNulls {
+  NULLS_FIRST
+  NULLS_LAST
+}
+
+type Mutation {
+  createOneBroker(input: CreateOneBrokerInput!): Broker!
+  createManyBrokers(input: CreateManyBrokersInput!): [Broker!]!
+  updateOneBroker(input: UpdateOneBrokerInput!): Broker!
+  updateManyBrokers(input: UpdateManyBrokersInput!): UpdateManyResponse!
+  deleteOneBroker(input: DeleteOneBrokerInput!): BrokerDeleteResponse!
+  deleteManyBrokers(input: DeleteManyBrokersInput!): DeleteManyResponse!
+}
+
+input CreateOneBrokerInput {
+  """The record to create"""
+  broker: CreateBroker!
+}
+
+input CreateBroker {
+  email: String!
+  firstName: String!
+  lastName: String!
+}
+
+input CreateManyBrokersInput {
+  """Array of records to create"""
+  brokers: [CreateBroker!]!
+}
+
+input UpdateOneBrokerInput {
+  """The id of the record to update"""
+  id: ID!
+
+  """The update to apply."""
+  update: UpdateBroker!
+}
+
+input UpdateBroker {
+  email: String
+  firstName: String
+  lastName: String
+}
+
+input UpdateManyBrokersInput {
+  """Filter used to find fields to update"""
+  filter: BrokerUpdateFilter!
+
+  """The update to apply to all records found using the filter"""
+  update: UpdateBroker!
+}
+
+input BrokerUpdateFilter {
+  and: [BrokerUpdateFilter!]
+  or: [BrokerUpdateFilter!]
+  id: IDFilterComparison
+  firstName: StringFieldComparison
+  lastName: StringFieldComparison
+}
+
+input DeleteOneBrokerInput {
+  """The id of the record to delete."""
+  id: ID!
+}
+
+input DeleteManyBrokersInput {
+  """Filter to find records to delete"""
+  filter: BrokerDeleteFilter!
+}
+
+input BrokerDeleteFilter {
+  and: [BrokerDeleteFilter!]
+  or: [BrokerDeleteFilter!]
+  id: IDFilterComparison
+  firstName: StringFieldComparison
+  lastName: StringFieldComparison
+}

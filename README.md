@@ -9,9 +9,9 @@ docker compose up -d
 npm run start:dev
 ```
 
-Navigate to `http://localhost:3000/graphql`
+Navigate to <http://localhost:3000/graphql>
 
-Create a few objects
+Create a few objects using the mutations below:
 
 ```gql
 mutation Create($input: CreateOneItemInput!) {
@@ -22,14 +22,38 @@ mutation Create($input: CreateOneItemInput!) {
 }
 ```
 
-Use the following payload (remove "parent" when creating parent items, then use the parent ID to create children):
+Use the following payload to create the parent item:
 
 ```json
 {
   "input": {
     "item": {
-      "name": "Item 1",
-      "parent": "65c4c8dbdba77e2806ee87ad"
+      "name": "Item 1"
+    }
+  }
+}
+```
+
+Now replace `<ITEM_1_ID>` below with the generated ID to create children:
+
+```json
+{
+  "input": {
+    "item": {
+      "name": "Item 2",
+      "parent": "<ITEM_1_ID>"
+
+    }
+  }
+}
+```
+
+```json
+{
+  "input": {
+    "item": {
+      "name": "Item 3",
+      "parent": "<ITEM_1_ID>"
 
     }
   }

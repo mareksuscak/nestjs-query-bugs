@@ -10,10 +10,9 @@
 
 services:
   db:
-    image: mongo:6.0
-    volumes:
-      - db-data:/data/db
-      - ./docker/mongo/:/docker-entrypoint-initdb.d/:ro
+    build:
+      context: ./docker/mongo/
+      dockerfile: Dockerfile
     environment:
       MONGO_INITDB_DATABASE: app
       MONGO_INITDB_ROOT_USERNAME: root
@@ -24,11 +23,15 @@ services:
       - 27017
     ports:
       - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - db-data:/data/db
+      - ./docker/mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: test $$(echo "rs.initiate({'_id':'rs0','members':[{'_id':0,'host':'host.docker.internal:27017'}]}).ok || rs.status().ok" | mongo -u root -p root --quiet) -eq 1
       interval: 10s
-      timeout: 5s
-      retries: 5
+      start_period: 30s
 
 volumes:
   db-data:

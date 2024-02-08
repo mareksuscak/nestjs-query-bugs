@@ -1,72 +1,84 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ npm install
-```
+# NestJS Query Bugs
 
 ## Running the app
 
 ```bash
-# development
-$ npm run start
+npm install
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up -d
+npm run start:dev
 ```
 
-## Test
+Navigate to `http://localhost:3000/graphql`
 
-```bash
-# unit tests
-$ npm run test
+Create a few objects
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```gql
+mutation Create($input: CreateOneItemInput!) {
+  createOneItem(input: $input) {
+    id
+    name
+  }
+}
 ```
 
-## Support
+Use the following payload (remove "parent" when creating parent items, then use the parent ID to create children):
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```json
+{
+  "input": {
+    "item": {
+      "name": "Item 1",
+      "parent": "65c4c8dbdba77e2806ee87ad"
 
-## Stay in touch
+    }
+  }
+}
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Now query the created documents:
+
+```graphql
+# Write your query or mutation here
+{
+  items {
+    nodes {
+      id
+      name
+      subItems {
+        edges {
+          node {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Observe the following queries are made on the collection (printed in the terminal):
+
+```js
+// Top level query of the list
+items.find({"deleted":{"$ne":true}})
+
+// Expansion of the first item (this seems unnecessary!)
+items.findOne({"_id":"65c4c8dbdba77e2806ee87ad","deleted":{"$ne":true}})
+// Children lookup (should these be pulled in a batch query?)
+items.find({"parent":{"$in":["65c4c8dbdba77e2806ee87ad"]},"deleted":{"$ne":true}})
+
+// Expansion of the second item (this seems unnecessary!)
+items.findOne({"_id":"65c4c8eddba77e2806ee87af","deleted":{"$ne":true}})
+// Children lookup (should these be pulled in a batch query?)
+items.find({"parent":{"$in":["65c4c8eddba77e2806ee87af"]},"deleted":{"$ne":true}})
+
+// Expansion of the third item (this seems unnecessary!)
+items.findOne({"_id":"65c4c91cdba77e2806ee87dc","deleted":{"$ne":true}})
+// Children lookup (should these be pulled in a batch query?)
+items.find({"parent":{"$in":["65c4c91cdba77e2806ee87dc"]},"deleted":{"$ne":true}})
+```
 
 ## License
 

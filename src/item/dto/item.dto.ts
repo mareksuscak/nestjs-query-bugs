@@ -1,5 +1,6 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { ID, ObjectType } from '@nestjs/graphql';
 import {
+  CursorConnection,
   FilterableField,
   IDField,
   ObjectId,
@@ -8,24 +9,19 @@ import {
 } from '@ptc-org/nestjs-query-graphql';
 import mongoose from 'mongoose';
 
-@ObjectType('Broker')
+@ObjectType('Item')
 @QueryOptions({
   pagingStrategy: PagingStrategies.OFFSET,
   enableTotalCount: true,
 })
-export class BrokerDto {
+@CursorConnection('subItems', () => ItemDto)
+export class ItemDto {
   @ObjectId()
   _id: mongoose.Types.ObjectId;
 
   @IDField(() => ID)
   id!: string;
 
-  @Field()
-  email: string;
-
   @FilterableField()
-  firstName: string;
-
-  @FilterableField()
-  lastName: string;
+  name: string;
 }

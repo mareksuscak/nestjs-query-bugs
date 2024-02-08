@@ -2,107 +2,30 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Broker {
+type Item {
   id: ID!
-  email: String!
-  firstName: String!
-  lastName: String!
-}
-
-type DeleteManyResponse {
-  """The number of records deleted."""
-  deletedCount: Int!
-}
-
-type BrokerDeleteResponse {
-  id: ID
-  email: String
-  firstName: String
-  lastName: String
-}
-
-type UpdateManyResponse {
-  """The number of records updated."""
-  updatedCount: Int!
-}
-
-type OffsetPageInfo {
-  """true if paging forward and there are more records."""
-  hasNextPage: Boolean
-
-  """true if paging backwards and there are more records."""
-  hasPreviousPage: Boolean
-}
-
-type BrokerConnection {
-  """Paging information"""
-  pageInfo: OffsetPageInfo!
-
-  """Array of nodes."""
-  nodes: [Broker!]!
-
-  """Fetch total count of records"""
-  totalCount: Int!
-}
-
-type BrokerAggregateGroupBy {
-  id: ID
-  firstName: String
-  lastName: String
-}
-
-type BrokerCountAggregate {
-  id: Int
-  firstName: Int
-  lastName: Int
-}
-
-type BrokerMinAggregate {
-  id: ID
-  firstName: String
-  lastName: String
-}
-
-type BrokerMaxAggregate {
-  id: ID
-  firstName: String
-  lastName: String
-}
-
-type BrokerAggregateResponse {
-  groupBy: BrokerAggregateGroupBy
-  count: BrokerCountAggregate
-  min: BrokerMinAggregate
-  max: BrokerMaxAggregate
-}
-
-type Query {
-  brokerAggregate(
+  name: String!
+  subItemsAggregate(
     """Filter to find records to aggregate on"""
-    filter: BrokerAggregateFilter
-  ): [BrokerAggregateResponse!]!
-  broker(
-    """The id of the record to find."""
-    id: ID!
-  ): Broker!
-  brokers(
+    filter: ItemAggregateFilter
+  ): [ItemSubItemsAggregateResponse!]!
+  subItems(
     """Limit or page results."""
-    paging: OffsetPaging! = {limit: 10}
+    paging: CursorPaging! = {first: 10}
 
     """Specify to filter the records returned."""
-    filter: BrokerFilter! = {}
+    filter: ItemFilter! = {}
 
     """Specify to sort results."""
-    sorting: [BrokerSort!]! = []
-  ): BrokerConnection!
+    sorting: [ItemSort!]! = []
+  ): ItemSubItemsConnection!
 }
 
-input BrokerAggregateFilter {
-  and: [BrokerAggregateFilter!]
-  or: [BrokerAggregateFilter!]
+input ItemAggregateFilter {
+  and: [ItemAggregateFilter!]
+  or: [ItemAggregateFilter!]
   id: IDFilterComparison
-  firstName: StringFieldComparison
-  lastName: StringFieldComparison
+  name: StringFieldComparison
 }
 
 input IDFilterComparison {
@@ -139,32 +62,39 @@ input StringFieldComparison {
   notIn: [String!]
 }
 
-input OffsetPaging {
-  """Limit the number of records returned"""
-  limit: Int
+input CursorPaging {
+  """Paginate before opaque cursor"""
+  before: ConnectionCursor
 
-  """Offset to start returning records from"""
-  offset: Int
+  """Paginate after opaque cursor"""
+  after: ConnectionCursor
+
+  """Paginate first"""
+  first: Int
+
+  """Paginate last"""
+  last: Int
 }
 
-input BrokerFilter {
-  and: [BrokerFilter!]
-  or: [BrokerFilter!]
+"""Cursor for paging through collections"""
+scalar ConnectionCursor
+
+input ItemFilter {
+  and: [ItemFilter!]
+  or: [ItemFilter!]
   id: IDFilterComparison
-  firstName: StringFieldComparison
-  lastName: StringFieldComparison
+  name: StringFieldComparison
 }
 
-input BrokerSort {
-  field: BrokerSortFields!
+input ItemSort {
+  field: ItemSortFields!
   direction: SortDirection!
   nulls: SortNulls
 }
 
-enum BrokerSortFields {
+enum ItemSortFields {
   id
-  firstName
-  lastName
+  name
 }
 
 """Sort Directions"""
@@ -179,75 +109,220 @@ enum SortNulls {
   NULLS_LAST
 }
 
+type DeleteManyResponse {
+  """The number of records deleted."""
+  deletedCount: Int!
+}
+
+type ItemDeleteResponse {
+  id: ID
+  name: String
+}
+
+type UpdateManyResponse {
+  """The number of records updated."""
+  updatedCount: Int!
+}
+
+type OffsetPageInfo {
+  """true if paging forward and there are more records."""
+  hasNextPage: Boolean
+
+  """true if paging backwards and there are more records."""
+  hasPreviousPage: Boolean
+}
+
+type ItemConnection {
+  """Paging information"""
+  pageInfo: OffsetPageInfo!
+
+  """Array of nodes."""
+  nodes: [Item!]!
+
+  """Fetch total count of records"""
+  totalCount: Int!
+}
+
+type ItemAggregateGroupBy {
+  id: ID
+  name: String
+}
+
+type ItemCountAggregate {
+  id: Int
+  name: Int
+}
+
+type ItemMinAggregate {
+  id: ID
+  name: String
+}
+
+type ItemMaxAggregate {
+  id: ID
+  name: String
+}
+
+type ItemAggregateResponse {
+  groupBy: ItemAggregateGroupBy
+  count: ItemCountAggregate
+  min: ItemMinAggregate
+  max: ItemMaxAggregate
+}
+
+type ItemEdge {
+  """The node containing the Item"""
+  node: Item!
+
+  """Cursor for this node."""
+  cursor: ConnectionCursor!
+}
+
+type PageInfo {
+  """true if paging forward and there are more records."""
+  hasNextPage: Boolean
+
+  """true if paging backwards and there are more records."""
+  hasPreviousPage: Boolean
+
+  """The cursor of the first returned record."""
+  startCursor: ConnectionCursor
+
+  """The cursor of the last returned record."""
+  endCursor: ConnectionCursor
+}
+
+type ItemSubItemsConnection {
+  """Paging information"""
+  pageInfo: PageInfo!
+
+  """Array of edges."""
+  edges: [ItemEdge!]!
+
+  """Fetch total count of records"""
+  totalCount: Int!
+}
+
+type ItemSubItemsAggregateGroupBy {
+  id: ID
+  name: String
+}
+
+type ItemSubItemsCountAggregate {
+  id: Int
+  name: Int
+}
+
+type ItemSubItemsMinAggregate {
+  id: ID
+  name: String
+}
+
+type ItemSubItemsMaxAggregate {
+  id: ID
+  name: String
+}
+
+type ItemSubItemsAggregateResponse {
+  groupBy: ItemSubItemsAggregateGroupBy
+  count: ItemSubItemsCountAggregate
+  min: ItemSubItemsMinAggregate
+  max: ItemSubItemsMaxAggregate
+}
+
+type Query {
+  itemAggregate(
+    """Filter to find records to aggregate on"""
+    filter: ItemAggregateFilter
+  ): [ItemAggregateResponse!]!
+  item(
+    """The id of the record to find."""
+    id: ID!
+  ): Item!
+  items(
+    """Limit or page results."""
+    paging: OffsetPaging! = {limit: 10}
+
+    """Specify to filter the records returned."""
+    filter: ItemFilter! = {}
+
+    """Specify to sort results."""
+    sorting: [ItemSort!]! = []
+  ): ItemConnection!
+}
+
+input OffsetPaging {
+  """Limit the number of records returned"""
+  limit: Int
+
+  """Offset to start returning records from"""
+  offset: Int
+}
+
 type Mutation {
-  createOneBroker(input: CreateOneBrokerInput!): Broker!
-  createManyBrokers(input: CreateManyBrokersInput!): [Broker!]!
-  updateOneBroker(input: UpdateOneBrokerInput!): Broker!
-  updateManyBrokers(input: UpdateManyBrokersInput!): UpdateManyResponse!
-  deleteOneBroker(input: DeleteOneBrokerInput!): BrokerDeleteResponse!
-  deleteManyBrokers(input: DeleteManyBrokersInput!): DeleteManyResponse!
+  createOneItem(input: CreateOneItemInput!): Item!
+  createManyItems(input: CreateManyItemsInput!): [Item!]!
+  updateOneItem(input: UpdateOneItemInput!): Item!
+  updateManyItems(input: UpdateManyItemsInput!): UpdateManyResponse!
+  deleteOneItem(input: DeleteOneItemInput!): ItemDeleteResponse!
+  deleteManyItems(input: DeleteManyItemsInput!): DeleteManyResponse!
 }
 
-input CreateOneBrokerInput {
+input CreateOneItemInput {
   """The record to create"""
-  broker: CreateBroker!
+  item: CreateItemInput!
 }
 
-input CreateBroker {
-  email: String!
-  firstName: String!
-  lastName: String!
+input CreateItemInput {
+  name: String!
+  parent: String
 }
 
-input CreateManyBrokersInput {
+input CreateManyItemsInput {
   """Array of records to create"""
-  brokers: [CreateBroker!]!
+  items: [CreateItemInput!]!
 }
 
-input UpdateOneBrokerInput {
+input UpdateOneItemInput {
   """The id of the record to update"""
   id: ID!
 
   """The update to apply."""
-  update: UpdateBroker!
+  update: UpdateItemInput!
 }
 
-input UpdateBroker {
-  email: String
-  firstName: String
-  lastName: String
+input UpdateItemInput {
+  parent: String
 }
 
-input UpdateManyBrokersInput {
+input UpdateManyItemsInput {
   """Filter used to find fields to update"""
-  filter: BrokerUpdateFilter!
+  filter: ItemUpdateFilter!
 
   """The update to apply to all records found using the filter"""
-  update: UpdateBroker!
+  update: UpdateItemInput!
 }
 
-input BrokerUpdateFilter {
-  and: [BrokerUpdateFilter!]
-  or: [BrokerUpdateFilter!]
+input ItemUpdateFilter {
+  and: [ItemUpdateFilter!]
+  or: [ItemUpdateFilter!]
   id: IDFilterComparison
-  firstName: StringFieldComparison
-  lastName: StringFieldComparison
+  name: StringFieldComparison
 }
 
-input DeleteOneBrokerInput {
+input DeleteOneItemInput {
   """The id of the record to delete."""
   id: ID!
 }
 
-input DeleteManyBrokersInput {
+input DeleteManyItemsInput {
   """Filter to find records to delete"""
-  filter: BrokerDeleteFilter!
+  filter: ItemDeleteFilter!
 }
 
-input BrokerDeleteFilter {
-  and: [BrokerDeleteFilter!]
-  or: [BrokerDeleteFilter!]
+input ItemDeleteFilter {
+  and: [ItemDeleteFilter!]
+  or: [ItemDeleteFilter!]
   id: IDFilterComparison
-  firstName: StringFieldComparison
-  lastName: StringFieldComparison
+  name: StringFieldComparison
 }

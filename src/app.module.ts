@@ -6,6 +6,7 @@ import { Connection } from 'mongoose';
 import ms from 'ms';
 
 import { ItemModule } from './item/item.module';
+import { NestjsQueryGraphQLModule } from '@ptc-org/nestjs-query-graphql';
 
 @Module({
   imports: [
@@ -47,6 +48,15 @@ import { ItemModule } from './item/item.module';
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',
     }),
+
+    NestjsQueryGraphQLModule.forRoot({
+      dataLoader: {
+        batchScheduleFn: (callback: () => void) => {
+          return setTimeout(callback, 250);
+        },
+      },
+    }),
+
     ItemModule,
   ],
 })

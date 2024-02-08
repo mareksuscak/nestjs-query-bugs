@@ -106,6 +106,8 @@ items.findOne({"_id":"65c4c91cdba77e2806ee87dc","deleted":{"$ne":true}})
 items.find({"parent":{"$in":["65c4c91cdba77e2806ee87dc"]},"deleted":{"$ne":true}})
 ```
 
+I was expecting the data loader to handle batch-fetching of related items which I can accomplish through the `loaders` property as shown here: <https://github.com/mareksuscak/nestjs-query-bugs/pull/1/files#diff-089f4f2474b64391c42b6e66aed33977e132058d92108f0a63234a7862e1f8b8R54-R80>
+
 ## License
 
 Nest is [MIT licensed](LICENSE).

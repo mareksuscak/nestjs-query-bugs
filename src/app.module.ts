@@ -1,12 +1,13 @@
 import { Logger, Module } from '@nestjs/common';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MercuriusDriver, MercuriusDriverConfig } from '@nestjs/mercurius';
 import { GraphQLModule } from '@nestjs/graphql';
-import { MongooseModule } from '@nestjs/mongoose';
+import { InjectModel, MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import ms from 'ms';
 
 import { ItemModule } from './item/item.module';
 import { NestjsQueryGraphQLModule } from '@ptc-org/nestjs-query-graphql';
+import { Item, ItemModel, ItemSchema } from './item/item.model';
 
 @Module({
   imports: [
@@ -25,18 +26,9 @@ import { NestjsQueryGraphQLModule } from '@ptc-org/nestjs-query-graphql';
           // to set up hooks that are useful for pretty printing the queries
           // which in turn gives us better visibility.
           connectionFactory: (connection: Connection) => {
-            connection.set(
-              'debug',
-              (
-                collection: string,
-                method: string,
-                args: Record<string, unknown>,
-              ) => {
-                logger.debug(
-                  `${collection}.${method}(${JSON.stringify(args)})`,
-                );
-              },
-            );
+            connection.set('debug', (collection: string, method: string, args: Record<string, unknown>) => {
+              logger.debug(`${collection}.${method}(${JSON.stringify(args)})`);
+            });
 
             return connection;
           },
@@ -44,9 +36,50 @@ import { NestjsQueryGraphQLModule } from '@ptc-org/nestjs-query-graphql';
       },
     }),
 
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: 'schema.gql',
+    GraphQLModule.forRootAsync<MercuriusDriverConfig>({
+      driver: MercuriusDriver,
+      imports: [MongooseModule.forFeature([{ name: Item.name, schema: ItemSchema }])],
+      inject: [getModelToken(Item.name)],
+      useFactory: (itemModel: ItemModel) => {
+        // const logger = new Logger('MercuriusGraphQLModule');
+        return {
+          autoSchemaFile: 'schema.gql',
+          ide: 'graphiql',
+          queryDepth: 11,
+          cache: true,
+          jit: 1,
+
+          // Examples:
+          // https://dev.to/tugascript/how-to-solve-the-graphql-n1-problem-in-nestjs-with-dataloaders-and-mikroorm-for-both-apollo-and-mercurius-3klk
+          loaders: {
+            Item: {
+              subItems: {
+                async loader(queries) {
+                  const allItems = queries.map(({ obj }) => obj);
+                  const allSubItems = await itemModel.find({
+                    parent: { $in: allItems.map((si) => si.parent).filter((si) => !!si) },
+                  });
+
+                  const resp = allItems.map((i) => {
+                    return {
+                      edges: allSubItems
+                        .filter((si) => {
+                          return si.parent.equals(i._id);
+                        })
+                        .map((si) => ({ node: si })),
+                    };
+                  });
+
+                  return resp;
+                },
+                opts: {
+                  cache: false,
+                },
+              },
+            },
+          },
+        };
+      },
     }),
 
     NestjsQueryGraphQLModule.forRoot({

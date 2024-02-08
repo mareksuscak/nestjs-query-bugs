@@ -1,5 +1,7 @@
 # NestJS Query Bugs
 
+This repository was created in response to a request in <https://github.com/TriPSs/nestjs-query/discussions/221#discussioncomment-8254652>.
+
 ## Running the app
 
 ```bash

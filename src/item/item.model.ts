@@ -43,3 +43,9 @@ ItemSchema.virtual('subItems', {
   localField: '_id',
   foreignField: 'parent',
 });
+
+ItemSchema.virtual('subItemsPaged', {
+  ref: 'Item',
+  localField: '_id',
+  foreignField: 'parent',
+});

@@ -31,7 +31,7 @@
     "@nestjs/swagger": "^7.1.17",
     "@ptc-org/nestjs-query-core": "^6.1.1",
     "@ptc-org/nestjs-query-graphql": "^6.1.1",
-    "@ptc-org/nestjs-query-mongoose": "^6.1.1",
+    "@ptc-org/nestjs-query-mongoose": "patch:@ptc-org/nestjs-query-mongoose@npm%3A6.1.1#~/.yarn/patches/@ptc-org-nestjs-query-mongoose-npm-6.1.1-e942c7340f.patch",
     "@types/mongoose-delete": "^1.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",

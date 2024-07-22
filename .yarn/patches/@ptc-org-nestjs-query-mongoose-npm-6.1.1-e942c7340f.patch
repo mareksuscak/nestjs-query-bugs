@@ -1,0 +1,236 @@
+diff --git a/src/services/reference-query.service.js b/src/services/reference-query.service.js
+index e4ea2b9a57a5716366cc72acf69cf28bd8449f1b..0959ff07301c7c309286b9a8ba4ed8533e3acc4c 100644
+--- a/src/services/reference-query.service.js
++++ b/src/services/reference-query.service.js
+@@ -9,16 +9,12 @@ const query_1 = require("../query");
+ class ReferenceQueryService {
+     async aggregateRelations(RelationClass, relationName, dto, filter, aggregateQuery) {
+         this.checkForReference('AggregateRelations', relationName);
+-        const relationModel = this.getReferenceModel(relationName);
+-        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         if (Array.isArray(dto)) {
+-            return dto.reduce(async (mapPromise, entity) => {
+-                const map = await mapPromise;
+-                const refs = await this.aggregateRelations(RelationClass, relationName, entity, filter, aggregateQuery);
+-                return map.set(entity, refs);
+-            }, Promise.resolve(new Map()));
++            return this.batchAggregateRelations(RelationClass, relationName, dto, filter, aggregateQuery);
+         }
+         const assembler = nestjs_query_core_1.AssemblerFactory.getAssembler(RelationClass, mongoose_1.Document);
++        const relationModel = this.getReferenceModel(relationName);
++        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         const refFilter = this.getReferenceFilter(relationName, dto, assembler.convertQuery({ filter }).filter);
+         if (!refFilter) {
+             return [];
+@@ -34,11 +30,7 @@ class ReferenceQueryService {
+     async countRelations(RelationClass, relationName, dto, filter) {
+         this.checkForReference('CountRelations', relationName);
+         if (Array.isArray(dto)) {
+-            return dto.reduce(async (mapPromise, entity) => {
+-                const map = await mapPromise;
+-                const refs = await this.countRelations(RelationClass, relationName, entity, filter);
+-                return map.set(entity, refs);
+-            }, Promise.resolve(new Map()));
++            return this.batchCountRelations(RelationClass, relationName, dto, filter);
+         }
+         const assembler = nestjs_query_core_1.AssemblerFactory.getAssembler(RelationClass, mongoose_1.Document);
+         const relationModel = this.getReferenceModel(relationName);
+@@ -51,39 +43,126 @@ class ReferenceQueryService {
+     }
+     async findRelation(RelationClass, relationName, dto, opts) {
+         this.checkForReference('FindRelation', relationName);
+-        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         if (Array.isArray(dto)) {
+-            return dto.reduce(async (prev, curr) => {
+-                const map = await prev;
+-                const ref = await this.findRelation(RelationClass, relationName, curr, opts);
+-                return map.set(curr, ref);
+-            }, Promise.resolve(new Map()));
++            return this.batchFindRelations(RelationClass, relationName, dto, opts);
+         }
+         const foundEntity = await this.Model.findById(dto._id ?? dto.id);
+         if (!foundEntity) {
+             return undefined;
+         }
+         const assembler = nestjs_query_core_1.AssemblerFactory.getAssembler(RelationClass, mongoose_1.Document);
++        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         const filterQuery = referenceQueryBuilder.buildFilterQuery(assembler.convertQuery({ filter: opts?.filter }).filter);
+         const populated = await foundEntity.populate({ path: relationName, match: filterQuery });
+         const populatedRef = populated.get(relationName);
+         return populatedRef ? assembler.convertToDTO(populatedRef) : undefined;
+     }
++    /**
++     * Query for an array of relations for multiple dtos.
++     * @param RelationClass - The class to serialize the relations into.
++     * @param dtos - The entities to query relations for.
++     * @param relationName - The name of relation to query for.
++     * @param opts - A query to filter, page or sort relations.
++     * @param withDeleted - Also query the soft deleted records
++     */
++    async batchQueryRelations(RelationClass, relationName, dtos, opts, withDeleted) {
++        const assembler = nestjs_query_core_1.AssemblerFactory.getAssembler(RelationClass, mongoose_1.Document);
++        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
++        const query = assembler.convertQuery(opts);
++        // If paging is enabled, we need to query each entity individually
++        if (query.paging) {
++            const entityRelations = await Promise.all(dtos.map((d) => this.queryRelations(RelationClass, relationName, d, opts)));
++            return entityRelations.reduce((results, relations, index) => {
++                const e = dtos[index];
++                results.set(e, relations);
++                return results;
++            }, new Map());
++        }
++        const refFilter = this.getReferenceFilter(relationName, dtos, query.filter);
++        const results = new Map();
++        if (!refFilter) {
++            return results;
++        }
++        const refFieldMap = this.getReferenceFieldMap(relationName);
++        if (!refFieldMap) {
++            return results;
++        }
++        const { filterQuery, options } = referenceQueryBuilder.buildQuery({ ...query, filter: refFilter });
++        const referenceModel = this.getReferenceModel(relationName);
++        const entityRelations = await referenceModel.find(filterQuery).sort(options.sort).exec();
++        for (const dto of dtos) {
++            const referenceIds = this.getReferenceIds(refFieldMap.localField, dto);
++            const refs = entityRelations.filter((er) => {
++                return referenceIds.some((rid) => {
++                    const oneOrManyIds = er[refFieldMap.foreignField];
++                    const ids = (Array.isArray(oneOrManyIds) ? oneOrManyIds : [oneOrManyIds]);
++                    return ids.some((id) => id.equals(rid));
++                });
++            });
++            results.set(dto, await assembler.convertToDTOs(refs));
++        }
++        return results;
++    }
++    /**
++     * Query for an array of relations for multiple dtos.
++     * @param RelationClass - The class to serialize the relations into.
++     * @param entities - The entities to query relations for.
++     * @param relationName - The name of relation to query for.
++     * @param filter - Filter.
++     * @param query - A query to filter, page or sort relations.
++     */
++    async batchAggregateRelations(RelationClass, relationName, entities, filter, query) {
++        const entityRelations = await Promise.all(entities.map((e) => this.aggregateRelations(RelationClass, relationName, e, filter, query)));
++        return entityRelations.reduce((results, relationAggregate, index) => {
++            const e = entities[index];
++            results.set(e, relationAggregate);
++            return results;
++        }, new Map());
++    }
++    /**
++     * Count the number of relations for multiple dtos.
++     * @param RelationClass - The class to serialize the relations into.
++     * @param entities - The entities to query relations for.
++     * @param relationName - The name of relation to query for.
++     * @param filter - The filter to apply to the relation query.
++     */
++    async batchCountRelations(RelationClass, relationName, entities, filter) {
++        const entityRelations = await Promise.all(entities.map((e) => this.countRelations(RelationClass, relationName, e, filter)));
++        return entityRelations.reduce((results, relationCount, index) => {
++            const e = entities[index];
++            results.set(e, relationCount);
++            return results;
++        }, new Map());
++    }
++    /**
++     * Query for a relation for multiple dtos.
++     * @param RelationClass - The class to serialize the relations into.
++     * @param dtos - The dto to query relations for.
++     * @param relationName - The name of relation to query for.
++     * @param opts - A query to filter, page or sort relations.
++     */
++    async batchFindRelations(RelationClass, relationName, dtos, opts) {
++        const batchResults = await this.batchQueryRelations(RelationClass, relationName, dtos, {
++            filter: opts?.filter
++        }, opts?.withDeleted);
++        const results = new Map();
++        batchResults.forEach((relation, dto) => {
++            // get just the first one.
++            results.set(dto, relation[0]);
++        });
++        return results;
++    }
+     async queryRelations(RelationClass, relationName, dto, query) {
+         this.checkForReference('QueryRelations', relationName);
+-        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         if (Array.isArray(dto)) {
+-            return dto.reduce(async (mapPromise, entity) => {
+-                const map = await mapPromise;
+-                const refs = await this.queryRelations(RelationClass, relationName, entity, query);
+-                return map.set(entity, refs);
+-            }, Promise.resolve(new Map()));
++            return this.batchQueryRelations(RelationClass, relationName, dto, query);
+         }
+         const foundEntity = await this.Model.findById(dto._id ?? dto.id);
+         if (!foundEntity) {
+             return [];
+         }
+         const assembler = nestjs_query_core_1.AssemblerFactory.getAssembler(RelationClass, mongoose_1.Document);
++        const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);
+         const { filterQuery, options } = referenceQueryBuilder.buildQuery(assembler.convertQuery(query));
+         const populated = await foundEntity.populate({ path: relationName, match: filterQuery, options });
+         return assembler.convertToDTOs(populated.get(relationName));
+@@ -195,34 +274,39 @@ class ReferenceQueryService {
+         throw new Error(`Unable to lookup reference type for ${refName}`);
+     }
+     getReferenceFilter(refName, entity, filter) {
++        const refFieldMap = this.getReferenceFieldMap(refName);
++        if (!refFieldMap) {
++            return undefined;
++        }
++        const referenceIds = this.getReferenceIds(refFieldMap.localField, entity);
++        const refFilter = {
++            [refFieldMap.foreignField]: { in: referenceIds }
++        };
++        return (0, nestjs_query_core_1.mergeFilter)(filter ?? {}, refFilter);
++    }
++    getReferenceIds(localField, entity) {
++        const entities = Array.isArray(entity) ? entity : [entity];
++        return entities.flatMap((e) => e[localField]).filter((id) => !!id);
++    }
++    getReferenceFieldMap(refName) {
+         if (this.isReferencePath(refName)) {
+-            return this.getObjectIdReferenceFilter(refName, entity, filter);
++            return {
++                foreignField: '_id',
++                localField: refName
++            };
+         }
+         if (this.isVirtualPath(refName)) {
+             const virtualType = this.Model.schema.virtualpath(refName);
+-            if ((0, mongoose_types_helper_1.isVirtualTypeWithReferenceOptions)(virtualType)) {
+-                return this.getVirtualReferenceFilter(virtualType, entity, filter);
++            if (!(0, mongoose_types_helper_1.isVirtualTypeWithReferenceOptions)(virtualType)) {
++                throw new Error(`Unable to lookup reference type for ${refName}`);
+             }
+-            throw new Error(`Unable to lookup reference type for ${refName}`);
++            return {
++                foreignField: virtualType.options.foreignField,
++                localField: virtualType.options.localField
++            };
+         }
+         return undefined;
+     }
+-    getObjectIdReferenceFilter(refName, entity, filter) {
+-        const referenceIds = entity[refName];
+-        const refFilter = {
+-            _id: { [Array.isArray(referenceIds) ? 'in' : 'eq']: referenceIds }
+-        };
+-        return (0, nestjs_query_core_1.mergeFilter)(filter ?? {}, refFilter);
+-    }
+-    getVirtualReferenceFilter(virtualType, entity, filter) {
+-        const { foreignField, localField } = virtualType.options;
+-        const refVal = entity[localField];
+-        const isArray = Array.isArray(refVal);
+-        const lookupFilter = {
+-            [foreignField]: { [isArray ? 'in' : 'eq']: refVal }
+-        };
+-        return (0, nestjs_query_core_1.mergeFilter)(filter ?? {}, lookupFilter);
+-    }
+     getRefCount(relationName, relationIds, filter) {
+         const referenceModel = this.getReferenceModel(relationName);
+         const referenceQueryBuilder = this.getReferenceQueryBuilder(relationName);

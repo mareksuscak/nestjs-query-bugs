@@ -72,12 +72,8 @@ Now query the created documents:
       id
       name
       subItems {
-        edges {
-          node {
-            id
-            name
-          }
-        }
+        id
+        name
       }
     }
   }

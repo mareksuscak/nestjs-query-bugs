@@ -5,10 +5,10 @@ This repository was created in response to a request in <https://github.com/TriP
 ## Running the app
 
 ```bash
-npm install
+yarn
 
 docker compose up -d
-npm run start:dev
+yarn start:dev
 ```
 
 Navigate to <http://localhost:3000/graphql>

@@ -61,13 +61,9 @@ import { Item, ItemModel, ItemSchema } from './item/item.model';
                   });
 
                   const resp = allItems.map((i) => {
-                    return {
-                      edges: allSubItems
-                        .filter((si) => {
-                          return si.parent.equals(i._id);
-                        })
-                        .map((si) => ({ node: si })),
-                    };
+                    return allSubItems.filter((si) => {
+                      return si.parent.equals(i._id);
+                    });
                   });
 
                   return resp;

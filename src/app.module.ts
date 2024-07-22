@@ -72,6 +72,30 @@ import { Item, ItemModel, ItemSchema } from './item/item.model';
                   cache: false,
                 },
               },
+              subItemsPaged: {
+                async loader(queries) {
+                  const allItems = queries.map(({ obj }) => obj);
+                  const allSubItems = await itemModel.find({
+                    parent: { $in: allItems.map((si) => si.parent).filter((si) => !!si) },
+                  });
+
+                  const resp = allItems.map((i) => {
+                    const nodes = allSubItems.filter((si) => {
+                      return si.parent.equals(i._id);
+                    })
+
+                    return {
+                      nodes,
+                      totalCount: nodes.length,
+                    };
+                  });
+
+                  return resp;
+                },
+                opts: {
+                  cache: false,
+                },
+              },
             },
           },
         };

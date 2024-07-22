@@ -15,7 +15,9 @@ import mongoose from 'mongoose';
   pagingStrategy: PagingStrategies.OFFSET,
   enableTotalCount: true,
 })
-@CursorConnection('subItems', () => ItemDto)
+@CursorConnection('subItems', () => ItemDto, {
+  pagingStrategy: PagingStrategies.NONE,
+})
 @Relation('parent', () => ItemDto, { nullable: true })
 export class ItemDto {
   @ObjectId()

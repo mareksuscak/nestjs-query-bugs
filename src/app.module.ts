@@ -82,10 +82,11 @@ import { Item, ItemModel, ItemSchema } from './item/item.model';
                   const resp = allItems.map((i) => {
                     const nodes = allSubItems.filter((si) => {
                       return si.parent.equals(i._id);
-                    })
+                    });
 
                     return {
                       nodes,
+                      // This is a fake totalCount, you should use a real count
                       totalCount: nodes.length,
                     };
                   });

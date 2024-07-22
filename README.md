@@ -75,7 +75,25 @@ Now query the created documents:
         id
         name
       }
+      # Uncomment to test paged connection
+      # subItemsPaged {
+      #   nodes {
+      #     id
+      #     name
+      #   }
+      #   totalCount
+      # }
+      # Uncomment to test single relation
+      # parent {
+      #   id
+      #   name
+      # }
     }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+    totalCount
   }
 }
 ```
@@ -85,6 +103,9 @@ Observe the following queries are made on the collection (printed in the termina
 ```js
 // Top level query of the list
 items.find({"deleted":{"$ne":true}})
+
+// Top level count query
+items.countDocuments({"deleted":{"$ne":true}})
 
 // Expansion of the first item (this seems unnecessary!)
 items.findOne({"_id":"65c4c8dbdba77e2806ee87ad","deleted":{"$ne":true}})

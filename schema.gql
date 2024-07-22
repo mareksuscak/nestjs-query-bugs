@@ -9,6 +9,7 @@ type Item {
     """Filter to find records to aggregate on"""
     filter: ItemAggregateFilter
   ): [ItemSubItemsAggregateResponse!]!
+  parent: Item
   subItems(
     """Limit or page results."""
     paging: CursorPaging! = {first: 10}

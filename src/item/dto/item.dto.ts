@@ -6,6 +6,7 @@ import {
   ObjectId,
   PagingStrategies,
   QueryOptions,
+  Relation,
 } from '@ptc-org/nestjs-query-graphql';
 import mongoose from 'mongoose';
 
@@ -15,6 +16,7 @@ import mongoose from 'mongoose';
   enableTotalCount: true,
 })
 @CursorConnection('subItems', () => ItemDto)
+@Relation('parent', () => ItemDto, { nullable: true })
 export class ItemDto {
   @ObjectId()
   _id: mongoose.Types.ObjectId;

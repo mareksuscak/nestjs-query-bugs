@@ -33,3 +33,9 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Metadata file
+src/metadata.ts
+
+# GQL schema
+schema.gql

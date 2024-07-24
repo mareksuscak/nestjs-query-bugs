@@ -55,8 +55,8 @@ Now replace `<ITEM_1_ID>` below with the generated ID to create children:
   "input": {
     "item": {
       "name": "Item 3",
-      "parent": "<ITEM_1_ID>"
-
+      "parent": "<ITEM_1_ID>",
+      "random": "<ITEM_1_ID>"
     }
   }
 }

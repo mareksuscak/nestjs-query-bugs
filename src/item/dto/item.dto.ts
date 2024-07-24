@@ -1,4 +1,4 @@
-import { ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 import {
   CursorConnection,
   FilterableField,
@@ -31,4 +31,7 @@ export class ItemDto {
 
   @FilterableField()
   name: string;
+
+  @Field({ nullable: true })
+  random: string;
 }

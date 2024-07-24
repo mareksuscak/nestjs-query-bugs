@@ -22,6 +22,9 @@ export class Item extends Document<SoftDeleteInterface> {
 
   @Prop({ type: SchemaTypes.ObjectId, ref: 'Item' })
   parent?: Types.ObjectId;
+
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'Item' })
+  random?: Types.ObjectId;
 }
 
 export const ItemSchema = SchemaFactory.createForClass(Item);

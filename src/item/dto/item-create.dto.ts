@@ -7,4 +7,7 @@ export class CreateItemInput {
 
   @Field({ nullable: true })
   parent?: string;
+
+  @Field({ nullable: true })
+  random?: string;
 }

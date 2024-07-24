@@ -11,11 +11,7 @@ import { UpdateItemInput } from './dto/item-update.dto';
 @Module({
   imports: [
     NestjsQueryGraphQLModule.forFeature({
-      imports: [
-        NestjsQueryMongooseModule.forFeature([
-          { document: Item, name: Item.name, schema: ItemSchema },
-        ]),
-      ],
+      imports: [NestjsQueryMongooseModule.forFeature([{ document: Item, name: Item.name, schema: ItemSchema }])],
 
       dtos: [{ DTOClass: ItemDto }],
       services: [ItemService],
